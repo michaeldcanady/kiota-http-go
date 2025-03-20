@@ -3,15 +3,13 @@ package nethttplibrary
 import (
 	nethttp "net/http"
 
+	"github.com/microsoft/kiota-http-go/internal"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
 
 // Pipeline contract for middleware infrastructure
-type Pipeline interface {
-	// Next moves the request object through middlewares in the pipeline
-	Next(req *nethttp.Request, middlewareIndex int) (*nethttp.Response, error)
-}
+type Pipeline = internal.Pipeline
 
 // custom transport for net/http with a middleware pipeline
 type customTransport struct {

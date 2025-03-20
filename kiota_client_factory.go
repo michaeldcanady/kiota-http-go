@@ -4,10 +4,12 @@ package nethttplibrary
 
 import (
 	"errors"
-	abs "github.com/microsoft/kiota-abstractions-go"
 	nethttp "net/http"
 	"net/url"
 	"time"
+
+	abs "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoft/kiota-http-go/internal"
 )
 
 // GetClientWithProxySettings creates a new default net/http client with a proxy url and default middleware
@@ -56,6 +58,19 @@ func getTransportWithProxy(proxyUrlStr string, user *url.Userinfo, middlewares .
 	}
 
 	return NewCustomTransportWithParentTransport(transport, middlewares...), nil
+}
+
+// GetDefaultClient2 creates a new default net/http client with the options configured for the Kiota request adapter
+func GetDefaultClient2(opts ...internal.Option[*nethttp.Client]) (*nethttp.Client, error) {
+	client := getDefaultClientWithoutMiddleware()
+
+	for _, opt := range opts {
+		if err := opt(client); err != nil {
+			return nil, err
+		}
+	}
+
+	return client, nil
 }
 
 // GetDefaultClient creates a new default net/http client with the options configured for the Kiota request adapter
