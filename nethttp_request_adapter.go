@@ -15,6 +15,7 @@ import (
 	absauth "github.com/microsoft/kiota-abstractions-go/authentication"
 	absser "github.com/microsoft/kiota-abstractions-go/serialization"
 	"github.com/microsoft/kiota-abstractions-go/store"
+	"github.com/microsoft/kiota-http-go/internal"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -48,6 +49,27 @@ type NetHttpRequestAdapter struct {
 	baseUrl string
 	// The observation options for the request adapter.
 	observabilityOptions ObservabilityOptions
+}
+
+// NewNetHttpRequestAdapter2 creates a new NetHttpRequestAdapter with the given parameters
+func NewNetHttpRequestAdapter2(authenticationProvider absauth.AuthenticationProvider, opts ...internal.Option[*NetHttpRequestAdapter]) (*NetHttpRequestAdapter, error) {
+	if authenticationProvider == nil {
+		return nil, errors.New("authenticationProvider cannot be nil")
+	}
+	result := &NetHttpRequestAdapter{
+		serializationWriterFactory: absser.DefaultSerializationWriterFactoryInstance,
+		parseNodeFactory:           absser.DefaultParseNodeFactoryInstance,
+		httpClient:                 GetDefaultClient(),
+		authenticationProvider:     authenticationProvider,
+		baseUrl:                    "",
+		observabilityOptions:       ObservabilityOptions{},
+	}
+
+	if err := internal.ApplyOptions(result, opts...); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // NewNetHttpRequestAdapter creates a new NetHttpRequestAdapter with the given parameters

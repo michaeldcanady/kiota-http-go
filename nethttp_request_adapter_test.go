@@ -2,11 +2,14 @@ package nethttplibrary
 
 import (
 	"context"
-	"github.com/microsoft/kiota-abstractions-go/serialization"
+	"errors"
 	nethttp "net/http"
 	httptest "net/http/httptest"
 	"net/url"
 	"testing"
+
+	"github.com/microsoft/kiota-abstractions-go/serialization"
+	absser "github.com/microsoft/kiota-abstractions-go/serialization"
 
 	abs "github.com/microsoft/kiota-abstractions-go"
 	absauth "github.com/microsoft/kiota-abstractions-go/authentication"
@@ -14,6 +17,7 @@ import (
 	"github.com/microsoft/kiota-http-go/internal"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestItRetriesOnCAEResponse(t *testing.T) {
@@ -351,4 +355,38 @@ func TestNetHttpRequestAdapter_EnableBackingStore(t *testing.T) {
 	assert.NotEqual(t, absstore.BackingStoreFactoryInstance(), store())
 	adapter.EnableBackingStore(store)
 	assert.Equal(t, absstore.BackingStoreFactoryInstance(), store())
+}
+
+func TestNewNetHttpRequestAdapter2_NoProvidedOptionsIsDefaults(t *testing.T) {
+	authProvider := &absauth.AnonymousAuthenticationProvider{}
+	adapter, err := NewNetHttpRequestAdapter2(authProvider)
+	assert.NoError(t, err)
+
+	assert.NotNil(t, adapter.httpClient)
+	assert.Equal(t, absser.DefaultParseNodeFactoryInstance, adapter.parseNodeFactory)
+	assert.Equal(t, absser.DefaultSerializationWriterFactoryInstance, adapter.serializationWriterFactory)
+}
+
+func TestNewNetHttpRequestAdapter2_ProvidedOptions(t *testing.T) {
+	// TODO: how do I test this?
+	strc := internal.NewMockOption[*NetHttpRequestAdapter]()
+	strc.On("Option", mock.AnythingOfType("*nethttplibrary.NetHttpRequestAdapter")).Return(nil)
+
+	authProvider := &absauth.AnonymousAuthenticationProvider{}
+	adapter, err := NewNetHttpRequestAdapter2(authProvider, strc.Option)
+	assert.NoError(t, err)
+
+	assert.NotNil(t, adapter.httpClient)
+	assert.Equal(t, &internal.MockParseNodeFactory{}, adapter.parseNodeFactory)
+	assert.Equal(t, absser.DefaultSerializationWriterFactoryInstance, adapter.serializationWriterFactory)
+}
+
+func TestNewNetHttpRequestAdapter2_ProvidedOptionsError(t *testing.T) {
+	strc := internal.NewMockOption[*NetHttpRequestAdapter]()
+	strc.On("Option", mock.AnythingOfType("*nethttplibrary.NetHttpRequestAdapter")).Return(errors.New("error"))
+
+	authProvider := &absauth.AnonymousAuthenticationProvider{}
+	adapter, err := NewNetHttpRequestAdapter2(authProvider, strc.Option)
+	assert.Error(t, err)
+	assert.Nil(t, adapter)
 }
