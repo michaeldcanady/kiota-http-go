@@ -1,7 +1,3 @@
 {
-	"cSpell.words": [
-		"kiota",
-		"nethttp",
-		"nethttplibrary"
-	]
+  "cSpell.words": ["kiota", "nethttp", "nethttplibrary", "Retriable"]
 }
